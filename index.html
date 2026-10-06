@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="nn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sikkerheitsmånaden 2026 · Finn sikkerheitsfeila</title>
+  <style>
+    :root {
+      --bg: #edf3f8;
+      --panel: #ffffff;
+      --ink: #153250;
+      --muted: #5b7088;
+      --accent: #0c5ea8;
+      --accent-2: #2e8ed6;
+      --success: #1d8a5b;
+      --warn: #d48200;
+      --shadow: 0 18px 40px rgba(19, 48, 80, 0.12);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: linear-gradient(180deg, #f5f8fb 0%, var(--bg) 100%); color: var(--ink); font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { padding: 18px; }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+    .hero {
+      background: linear-gradient(135deg, #12355a 0%, #0d5a97 50%, #1671b8 100%);
+      color: white;
+      border-radius: 28px;
+      padding: 24px 26px;
+      box-shadow: var(--shadow);
+    }
+    .eyebrow { font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.85; font-weight: 700; }
+    h1 { margin: 8px 0 8px; font-size: clamp(2.1rem, 4vw, 3.6rem); line-height: 1; }
+    .intro { margin: 0; max-width: 66ch; font-size: 1.02rem; line-height: 1.5; color: rgba(255,255,255,0.92); }
+
+    .statusbar {
+      margin-top: 16px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 18px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .status-left { font-weight: 600; }
+    .status-sub { font-weight: 400; opacity: 0.9; margin-top: 4px; font-size: 0.95rem; }
+    .count-wrap { min-width: 240px; flex: 1 1 260px; }
+    .count-line { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; font-size: 0.97rem; }
+    .progress {
+      height: 10px;
+      margin-top: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.2);
+      overflow: hidden;
+    }
+    .progress > span { display: block; height: 100%; width: 0%; border-radius: inherit; background: linear-gradient(90deg, #9ee1ff 0%, #ffffff 100%); transition: width .3s ease; }
+    .reset-btn {
+      border: none; border-radius: 999px; cursor: pointer; padding: 10px 16px; font-weight: 700; font-size: 0.95rem;
+      color: #0d4f83; background: white; box-shadow: 0 8px 20px rgba(0,0,0,.08);
+    }
+    .reset-btn:hover { transform: translateY(-1px); }
+
+    .game-card {
+      background: var(--panel);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      margin-top: 16px;
+      padding: 18px;
+    }
+    .game-top { display: flex; justify-content: space-between; gap: 12px; align-items: start; flex-wrap: wrap; margin-bottom: 14px; }
+    .game-top h2 { margin: 0; font-size: 1.45rem; }
+    .game-top p { margin: 6px 0 0; color: var(--muted); }
+    .hint-pill { background: #eef7ff; color: #0f5c98; padding: 9px 13px; border-radius: 999px; font-weight: 700; font-size: 0.94rem; }
+
+    .scene {
+      position: relative; width: 100%; aspect-ratio: 1672 / 941; overflow: hidden; border-radius: 22px; user-select: none;
+      background: #dfe8f1;
+      box-shadow: inset 0 0 0 1px rgba(19,48,80,0.08);
+    }
+    .scene img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .hotspot {
+      position: absolute; transform: translate(-50%, -50%); border: none; background: none; padding: 0; margin: 0;
+      cursor: pointer; border-radius: 50%; z-index: 2;
+    }
+    .hotspot::before {
+      content: ""; position: absolute; inset: 0; border-radius: inherit;
+      border: 3px solid rgba(255,255,255,0);
+      background: rgba(255,255,255,0);
+      transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .hotspot:focus-visible { outline: none; }
+    .hotspot.found::before {
+      border-color: rgba(29,138,91,0.98);
+      background: rgba(29,138,91,0.16);
+      box-shadow: 0 0 0 6px rgba(29,138,91,0.18);
+    }
+    .hotspot.found::after {
+      content: "✓"; position: absolute; right: -10px; top: -10px; width: 30px; height: 30px; border-radius: 999px;
+      background: var(--success); color: white; display: grid; place-items: center; font-weight: 800; font-size: 1rem;
+      box-shadow: 0 6px 14px rgba(0,0,0,.18);
+    }
+
+    .legend-wrap { margin-top: 16px; }
+    .legend-title { margin: 0 0 6px; font-size: 1.05rem; }
+    .legend-help { margin: 0 0 12px; color: var(--muted); font-size: 0.95rem; }
+    .legend {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 0;
+    }
+    .legend-item {
+      border-radius: 16px; padding: 12px 14px; background: #f5f8fc; border: 1px solid #dfe8f1; color: var(--muted); font-size: 0.95rem;
+    }
+    .legend-item strong { color: var(--ink); }
+    .legend-item.done { background: #eefaf3; border-color: #cbead8; color: #2d6e4f; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+      background: rgba(21,50,80,0.95); color: white; padding: 12px 16px; border-radius: 999px; font-weight: 700;
+      box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: all .25s ease; z-index: 50;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .modal {
+      position: fixed; inset: 0; background: rgba(10, 24, 38, 0.6); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 60;
+      backdrop-filter: blur(5px);
+    }
+    .modal.show { display: flex; }
+    .modal-card {
+      width: min(560px, 100%); background: white; border-radius: 24px; padding: 24px; box-shadow: 0 25px 60px rgba(0,0,0,.25);
+    }
+    .modal-badge {
+      display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #eef7ff; color: #0f5c98; font-weight: 800; font-size: 0.85rem;
+      letter-spacing: .03em; text-transform: uppercase;
+    }
+    .modal h3 { margin: 14px 0 8px; font-size: 1.7rem; line-height: 1.1; }
+    .modal p { margin: 0; color: var(--muted); line-height: 1.6; }
+    .modal-actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
+    .btn {
+      border: none; border-radius: 12px; padding: 12px 16px; font-weight: 700; cursor: pointer; font-size: 0.98rem;
+    }
+    .btn.primary { background: var(--accent); color: white; }
+    .btn.secondary { background: #eef3f8; color: var(--ink); }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+    @media (max-width: 720px) {
+      body { padding: 12px; }
+      .hero, .game-card { border-radius: 22px; }
+      .hero { padding: 18px; }
+      .game-card { padding: 12px; }
+      .game-top h2 { font-size: 1.25rem; }
+      .legend { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Sikkerheitsmånaden 2026 · Veke 2</div>
+      <h1>Finn sikkerheitsfeila</h1>
+      <p class="intro">Det har sneke seg inn seks heilt vanlege sikkerheitsfeil på denne kontorplassen. Klarer du å finne alle? Klikk på dei problema du oppdagar.</p>
+
+      <div class="statusbar">
+        <div>
+          <div class="status-left">🔎 Ei lita utfordring til kaffipausen</div>
+          <div class="status-sub">Du får forklaring undervegs, og når du har funne alt ventar ei lita gratulasjonsmelding.</div>
+        </div>
+        <div class="count-wrap">
+          <div class="count-line">
+            <span id="countText">0 av 6 funne</span>
+            <span id="percentText">0%</span>
+          </div>
+          <div class="progress"><span id="progressBar"></span></div>
+        </div>
+        <button class="reset-btn" id="resetBtn" type="button">↻ Start på nytt</button>
+      </div>
+    </section>
+
+    <section class="game-card">
+      <div class="game-top">
+        <div>
+          <h2>Klikk på feila i biletet</h2>
+          <p>Tips: nokre feil er på skjerm eller papir, andre ligg rett på pulten.</p>
+        </div>
+        <div class="hint-pill">Det er 6 feil totalt</div>
+      </div>
+
+      <div class="scene" id="scene" aria-label="Kontorbilete med sikkerheitsfeil">
+        <img src="kontor_sikkerheitsfeil.png" alt="Kontorplass med fleire synlege sikkerheitsfeil" />
+
+        <button class="hotspot" data-id="pc" data-title="Ulåst PC" data-desc="Denne PC-en står open og utan tilsyn. Lås alltid skjermen når du går frå plassen, sjølv om det berre er for eit lite augeblink." style="left: 32.6%; top: 34.2%; width: 32.8%; height: 39.5%; border-radius: 18px;" aria-label="Ulåst PC"><span class="sr-only">Ulåst PC</span></button>
+
+        <button class="hotspot" data-id="passord" data-title="Passord på lapp" data-desc="Passord skal ikkje liggje synleg ved skjermen. Ein Post-it-lapp er lett å sjå for andre og svekkjer tryggleiken." style="left: 38.5%; top: 53.2%; width: 9.0%; height: 12.5%; border-radius: 14px;" aria-label="Passord på lapp"><span class="sr-only">Passord på lapp</span></button>
+
+        <button class="hotspot" data-id="dokument" data-title="Konfidensielt dokument ligg ope" data-desc="Dokument med personopplysningar eller anna sensitiv informasjon bør ikkje liggje ope framme når dei ikkje er i bruk." style="left: 18.0%; top: 77.0%; width: 35.0%; height: 28.0%; border-radius: 20px;" aria-label="Konfidensielt dokument"><span class="sr-only">Konfidensielt dokument</span></button>
+
+        <button class="hotspot" data-id="printer" data-title="Utskrift gløymd i skrivaren" data-desc="Hent utskrifter med ein gong, særleg dersom dei kan innehalde sensitiv informasjon. Dokument som blir liggjande att kan bli sett av andre." style="left: 85.2%; top: 29.4%; width: 16.5%; height: 17.0%; border-radius: 18px;" aria-label="Utskrift i skrivaren"><span class="sr-only">Utskrift i skrivaren</span></button>
+
+        <button class="hotspot" data-id="kort" data-title="Tilgangskort ligg framme" data-desc="Tilgangskort og ID-kort bør haldast under kontroll. Ligg dei att på pulten, kan dei mistast eller brukast av uvedkomande." style="left: 60.2%; top: 69.0%; width: 10.5%; height: 9.5%; border-radius: 18px;" aria-label="Tilgangskort på pulten"><span class="sr-only">Tilgangskort på pulten</span></button>
+
+        <button class="hotspot" data-id="mobil" data-title="Ulåst mobiltelefon" data-desc="Telefonen ligg open og utan tilsyn. Jobbtelefonar og private mobilar med jobbdata bør låsast når dei ikkje er i bruk." style="left: 46.8%; top: 73.5%; width: 14.5%; height: 16.0%; border-radius: 18px;" aria-label="Ulåst mobil"><span class="sr-only">Ulåst mobiltelefon</span></button>
+      </div>
+
+      <div class="legend-wrap">
+        <h3 class="legend-title">Funne feil</h3>
+        <p class="legend-help">Det du har funne kjem opp her undervegs. Uoppdaga feil er skjulte til du finn dei.</p>
+        <div class="legend" id="legend"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" aria-live="polite"></div>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+    <div class="modal-card">
+      <div class="modal-badge" id="modalBadge">Rett observert</div>
+      <h3 id="modalTitle">Tittel</h3>
+      <p id="modalDesc">Forklaring</p>
+      <div class="modal-actions">
+        <button class="btn secondary" type="button" id="closeModalSecondary">Lukk</button>
+        <button class="btn primary" type="button" id="closeModalPrimary">Vidare</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const hotspots = [...document.querySelectorAll('.hotspot')];
+    const total = hotspots.length;
+    const found = new Set();
+    const countText = document.getElementById('countText');
+    const percentText = document.getElementById('percentText');
+    const progressBar = document.getElementById('progressBar');
+    const toast = document.getElementById('toast');
+    const modal = document.getElementById('modal');
+    const modalBadge = document.getElementById('modalBadge');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDesc = document.getElementById('modalDesc');
+    const scene = document.getElementById('scene');
+    const legend = document.getElementById('legend');
+    const resetBtn = document.getElementById('resetBtn');
+    const closePrimary = document.getElementById('closeModalPrimary');
+    const closeSecondary = document.getElementById('closeModalSecondary');
+
+    const items = hotspots.map(btn => ({
+      id: btn.dataset.id,
+      title: btn.dataset.title,
+      desc: btn.dataset.desc
+    }));
+
+    let toastTimer = null;
+    let completionPending = false;
+    let showingCompletion = false;
+
+    function renderLegend() {
+      const foundItems = items.filter(item => found.has(item.id));
+      if (!foundItems.length) {
+        legend.innerHTML = `
+          <div class="legend-item">
+            <strong>Ingen feil funne enno</strong><br>
+            Klikk i biletet for å finne den første sikkerheitsfeilen.
+          </div>
+        `;
+        return;
+      }
+
+      legend.innerHTML = foundItems.map(item => `
+        <div class="legend-item done">
+          <strong>✓ ${item.title}</strong><br>
+          Funnen – bra observert!
+        </div>
+      `).join('');
+    }
+
+    function updateStatus() {
+      const n = found.size;
+      const pct = Math.round((n / total) * 100);
+      countText.textContent = `${n} av ${total} funne`;
+      percentText.textContent = `${pct}%`;
+      progressBar.style.width = `${pct}%`;
+      renderLegend();
+    }
+
+    function showToast(msg) {
+      clearTimeout(toastTimer);
+      toast.textContent = msg;
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    function openModal(title, desc, done = false) {
+      showingCompletion = done;
+      modalBadge.textContent = done ? 'Du fann alt!' : 'Rett observert';
+      modalTitle.textContent = title;
+      modalDesc.textContent = desc;
+      modal.classList.add('show');
+    }
+
+    function showCompletion() {
+      completionPending = false;
+      openModal(
+        'Du fann alle seks!',
+        'Bra jobba! Du oppdaga alle sikkerheitsfeila i kontoret. Små vanar i kvardagen – som å låse skjermen, rydde bort sensitive dokument og passe på tilgangar – kan gjere ein stor forskjell for tryggleiken.',
+        true
+      );
+    }
+
+    function closeModal() {
+      const closedCompletion = showingCompletion;
+      modal.classList.remove('show');
+      showingCompletion = false;
+
+      if (!closedCompletion && completionPending) {
+        showCompletion();
+      }
+    }
+
+    hotspots.forEach(btn => {
+      btn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const { id, title, desc } = btn.dataset;
+        if (found.has(id)) {
+          showToast('Den har du allereie funne 👌');
+          return;
+        }
+        found.add(id);
+        btn.classList.add('found');
+        updateStatus();
+        if (found.size === total) completionPending = true;
+        openModal(title, desc, false);
+      });
+    });
+
+    scene.addEventListener('click', (event) => {
+      if (event.target.closest('.hotspot')) return;
+      showToast('Ikkje noko gale akkurat der – sjå litt vidare 👀');
+    });
+
+    resetBtn.addEventListener('click', () => {
+      found.clear();
+      completionPending = false;
+      showingCompletion = false;
+      hotspots.forEach(btn => btn.classList.remove('found'));
+      updateStatus();
+      closeModal();
+      showToast('Spelet er nullstilt. Lykke til!');
+    });
+
+    [closePrimary, closeSecondary].forEach(btn => btn.addEventListener('click', closeModal));
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    updateStatus();
+  </script>
+</body>
+</html>
